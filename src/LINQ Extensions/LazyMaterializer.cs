@@ -52,7 +52,7 @@ namespace LINQ_Extensions
 
 			public void Reset()
 			{
-				_index = 0;
+				_index = -1;
 				_sourceEnumerator.Reset();
 			}
 
