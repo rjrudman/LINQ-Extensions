@@ -69,7 +69,32 @@ namespace LINQ_Extensions.Test
 			Assert.AreEqual(0, _createdItems.Count);
 		}
 
-		private IEnumerable<int> GetCollection()
+	    [Test]
+	    public void EnumeratingCollectionTwice()
+	    {
+            var src = GetCollection();
+
+            var lazyMaterializer = new LazyMaterializer<int>(src);
+	        var firstSet = new List<int>();
+	        foreach (var item in lazyMaterializer)
+	        {
+	            firstSet.Add(item);
+	            if (item == 5)
+	                break;
+	        }
+            var secondSet = new List<int>();
+            foreach (var item in lazyMaterializer)
+            {
+                secondSet.Add(item);
+                if (item == 5)
+                    break;
+            }
+            
+            Assert.True(firstSet.SequenceEqual(secondSet));
+            Assert.AreEqual(6, _createdItems.Count);
+        }
+
+        private IEnumerable<int> GetCollection()
 	    {
 		    var i = 0;
 		    while (true)
