@@ -9,11 +9,12 @@ namespace LINQ_Extensions
 	/// </summary>
 	public class LazyMaterializer<T> : IEnumerable<T>
 	{
-		private readonly LazyMaterializerEnumerator _enumerator;
+		private readonly IEnumerator<T> _enumerator;
 		private readonly List<T> _buffer = new List<T>();
 		public LazyMaterializer(IEnumerable<T> source)
 		{
-		    _enumerator = new LazyMaterializerEnumerator(source.GetEnumerator(), _buffer);
+		    _enumerator = source.GetEnumerator();
+		    
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -23,9 +24,8 @@ namespace LINQ_Extensions
 
 		public IEnumerator<T> GetEnumerator()
 		{
-            _enumerator.Reset();
-			return _enumerator;
-		}
+            return new LazyMaterializerEnumerator(_enumerator, _buffer);
+        }
 
 		private class LazyMaterializerEnumerator : IEnumerator<T>
 		{
