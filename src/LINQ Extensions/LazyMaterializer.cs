@@ -9,11 +9,11 @@ namespace LINQ_Extensions
 	/// </summary>
 	public class LazyMaterializer<T> : IEnumerable<T>
 	{
-		private readonly IEnumerable<T> _source;
+		private readonly LazyMaterializerEnumerator _enumerator;
 		private readonly List<T> _buffer = new List<T>();
 		public LazyMaterializer(IEnumerable<T> source)
 		{
-            _source = source;
+		    _enumerator = new LazyMaterializerEnumerator(source.GetEnumerator(), _buffer);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -23,7 +23,8 @@ namespace LINQ_Extensions
 
 		public IEnumerator<T> GetEnumerator()
 		{
-			return new LazyMaterializerEnumerator(_source.GetEnumerator(), _buffer);
+            _enumerator.Reset();
+			return _enumerator;
 		}
 
 		private class LazyMaterializerEnumerator : IEnumerator<T>
@@ -38,25 +39,25 @@ namespace LINQ_Extensions
 				_buffer = buffer;
 			}
 
-			public bool MoveNext()
-			{
-				if (_buffer.Count > ++_index)
-					return true;
+            public bool MoveNext()
+            {
+                if (_buffer.Count > ++_index)
+                    return true;
 
-				var didMoveNext = _sourceEnumerator.MoveNext();
-				if (didMoveNext)
-					_buffer.Add(_sourceEnumerator.Current);
+                var didMoveNext = _sourceEnumerator.MoveNext();
 
-				return didMoveNext;
-			}
+                if (didMoveNext)
+                    _buffer.Add(_sourceEnumerator.Current);
 
-			public void Reset()
-			{
-				_index = -1;
-				_sourceEnumerator.Reset();
-			}
+                return didMoveNext;
+            }
+            
+            public void Reset()
+            {
+                _index = -1;
+            }
 
-			public T Current => _index < _buffer.Count ? _buffer[_index] : _sourceEnumerator.Current;
+			public T Current => _buffer.Count > _index ? _buffer[_index] : _sourceEnumerator.Current;
 
 			object IEnumerator.Current => Current;
 
