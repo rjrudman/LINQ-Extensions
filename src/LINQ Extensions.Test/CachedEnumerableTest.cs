@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace LINQ_Extensions.Test
 {
 	[TestFixture]
-    public class LazyMaterializerTest
+    public class CachedEnumerableTest
 	{
 		private readonly List<int> _createdItems = new List<int>();
 
@@ -20,7 +20,7 @@ namespace LINQ_Extensions.Test
 		{
 			var src = GetCollection();
 
-			var lazyMaterializer = new LazyMaterializer<int>(src);
+			var lazyMaterializer = new CachedEnumerable<int>(src);
 
 			var first = lazyMaterializer.First();
 			var firstAgain = lazyMaterializer.First();
@@ -34,7 +34,7 @@ namespace LINQ_Extensions.Test
 		{
 			var src = GetCollection();
 
-			var lazyMaterializer = new LazyMaterializer<int>(src);
+			var lazyMaterializer = new CachedEnumerable<int>(src);
 
 			var first = lazyMaterializer.Take(5).ToList();
 			var second = lazyMaterializer.Take(3).ToList();
@@ -49,7 +49,7 @@ namespace LINQ_Extensions.Test
 	    {
 			var src = GetCollection();
 
-			var lazyMaterializer = new LazyMaterializer<int>(src);
+			var lazyMaterializer = new CachedEnumerable<int>(src);
 
 			lazyMaterializer.First();
 			
@@ -62,7 +62,7 @@ namespace LINQ_Extensions.Test
 		{
 			var src = GetCollection();
 
-			var lazyMaterializer = new LazyMaterializer<int>(src);
+			var lazyMaterializer = new CachedEnumerable<int>(src);
 
 			lazyMaterializer.Take(5);
 
@@ -74,13 +74,32 @@ namespace LINQ_Extensions.Test
 	    {
             var src = GetCollection();
 
-            var lazyMaterializer = new LazyMaterializer<int>(src);
+            var lazyMaterializer = new CachedEnumerable<int>(src);
 	        var first = lazyMaterializer.Take(1).ToList();
             var second = lazyMaterializer.Take(2).ToList();
 
 	        Assert.True(first.SequenceEqual(new[] {0}));
 	        Assert.True(second.SequenceEqual(new[] {0, 1}));
             Assert.AreEqual(2, _createdItems.Count);
+        }
+
+	    [Test]
+	    public void EnumeratingNested()
+	    {
+	        var src = GetCollection().Take(2);
+
+            var lazyMaterializer = new CachedEnumerable<int>(src);
+
+	        var items = new List<int>();
+	        foreach (var outer in lazyMaterializer)
+	        {
+	            foreach (var inner in lazyMaterializer)
+	            {
+	                items.Add(outer + inner);
+	            }
+	        }
+
+            Assert.AreEqual(4, items.Count);
         }
 
         private IEnumerable<int> GetCollection()
