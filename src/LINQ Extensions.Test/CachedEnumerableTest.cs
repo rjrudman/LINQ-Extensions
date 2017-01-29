@@ -2,6 +2,11 @@
 using System.Linq;
 using NUnit.Framework;
 
+// We're explicitly testing the behaviour of enumerating the collection and laziness - the warnings are intended.
+
+// ReSharper disable PossibleMultipleEnumeration
+// ReSharper disable ReturnValueOfPureMethodIsNotUsed
+
 namespace LINQ_Extensions.Test
 {
 	[TestFixture]
